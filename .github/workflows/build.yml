@@ -8,10 +8,10 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Set up Node.js (Version 22)
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Force Initialize Local Project Framework Shell
         run: |
