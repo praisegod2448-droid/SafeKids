@@ -13,14 +13,10 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Force Initialize Local Project Framework Shell
+      - name: Sync Frontend Assets Into Native Folder
         run: |
           if [ ! -f package.json ]; then
             echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest"}}' > package.json
-          fi
-          mkdir -p www
-          if [ ! -f www/index.html ]; then
-            echo '<html><body>Safe Kids Core Shell</body></html>' > www/index.html
           fi
           npm install
           npx cap sync android
