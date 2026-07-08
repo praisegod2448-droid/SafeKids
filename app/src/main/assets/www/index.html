@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Kids Parental Control</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; text-align: center; }
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 400px; }
+        h1 { color: #1a73e8; margin-bottom: 5px; font-size: 24px; }
+        .status { font-size: 18px; font-weight: bold; margin: 15px 0; padding: 10px; border-radius: 8px; }
+        .online { background-color: #e6f4ea; color: #137333; }
+        .btn { background-color: #1a73e8; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 25px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s; margin-top: 10px; }
+        .btn:active { background-color: #1557b0; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; text-align: left; }
+        .info-item { background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; }
+        .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
+        .info-val { font-size: 15px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>Safe Kids</h1>
+        <p style="color: #666; margin-top: 0;">Parent Dashboard Terminal</p>
+        
+        <div class="status online">✨ Device Monitoring Active</div>
+
+        <button class="btn" onclick="updateLocation()">🛰️ Sync Live GPS Location</button>
+        <button class="btn" onclick="alert('Sending ping to device...')" style="background-color: #34a853;">🔔 Test Device Connection</button>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Current Latitude</div>
+                <div id="lat" class="info-val">Click Sync...</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Current Longitude</div>
+                <div id="lon" class="info-val">Click Sync...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateLocation() {
+            document.getElementById('lat').innerText = "Updating...";
+            document.getElementById('lon').innerText = "Updating...";
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('lat').innerText = position.coords.latitude.toFixed(5);
+                    document.getElementById('lon').innerText = position.coords.longitude.toFixed(5);
+                }, function(error) {
+                    document.getElementById('lat').innerText = "Permission Denied";
+                    document.getElementById('lon').innerText = "Check Location GPS";
+                });
+            } else {
+                alert("Geolocation is not supported by this device.");
+            }
+        }
+    </script>
+</body>
+</html>
+
