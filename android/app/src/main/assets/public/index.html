@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Safe Kids Dashboard</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 20px; color: #333; }
+    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }
+    h1 { color: #1a73e8; font-size: 24px; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 15px; }
+    button:active { background: #1557b0; }
+    .status { margin-top: 15px; font-weight: bold; color: #555; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🛡️ Safe Kids</h1>
+    <p>Parental Tracking Service</p>
+    <hr>
+    <div id="location-display">
+      <p><strong>Latitude:</strong> <span id="lat">Not tracking</span></p>
+      <p><strong>Longitude:</strong> <span id="lng">Not tracking</span></p>
+    </div>
+    <div class="status" id="status-msg">Service Status: Idle</div>
+    <button id="track-btn">Start Live Tracking</button>
+  </div>
+
+  <!-- Capacitor Logic to Fetch GPS Coordinates -->
+  <script type="module">
+    import { Geolocation } from 'https://unpkg.com';
+
+    const trackBtn = document.getElementById('track-btn');
+    const latSpan = document.getElementById('lat');
+    const lngSpan = document.getElementById('lng');
+    const statusMsg = document.getElementById('status-msg');
+
+    trackBtn.addEventListener('click', async () => {
+      statusMsg.innerText = "Requesting permissions...";
+      try {
+        // Request GPS access on the device
+        await Geolocation.requestPermissions();
+        statusMsg.innerText = "Tracking Active";
+        statusMsg.style.color = "green";
+
+        // Watch position updates in real-time
+        await Geolocation.watchPosition({ enableHighAccuracy: true }, (position, err) => {
+          if (position) {
+            latSpan.innerText = position.coords.latitude.toFixed(6);
+            lngSpan.innerText = position.coords.longitude.toFixed(6);
+          }
+          if (err) {
+            statusMsg.innerText = "Tracking Error: " + err.message;
+            statusMsg.style.color = "red";
+          }
+        });
+      } catch (error) {
+        statusMsg.innerText = "Permission Denied";
+        statusMsg.style.color = "red";
+      }
+    });
+  </script>
+</body>
+</html>
+
