@@ -8,6 +8,23 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Force Initialize Local Project Framework Shell
+        run: |
+          if [ ! -f package.json ]; then
+            echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest"}}' > package.json
+          fi
+          mkdir -p www
+          if [ ! -f www/index.html ]; then
+            echo '<html><body>Safe Kids Core Shell</body></html>' > www/index.html
+          fi
+          npm install
+          npx cap sync android
+
       - name: Set up Java
         uses: actions/setup-java@v4
         with:
