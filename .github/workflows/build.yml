@@ -15,22 +15,64 @@ jobs:
 
       - name: Sync Frontend Assets Into Native Folder
         run: |
-          # Generate base package layout explicitly containing our required dependencies
+          # Generate clean base package profile layout
           echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest","@capacitor/geolocation":"latest"}}' > package.json
-          
-          # Clean install tracking packages alongside native building command runners
           npm install
           
-          # Repair the package name string mismatch typo inside your configuration profile
-          if [ -f android/app/google-services.json ]; then
-            sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
-          fi
-          
-          # Run Capacitor sync tasks FIRST so the engine sets up its native base
+          # Run native sync setups
           npx cap copy android
           npx cap sync android
 
-      # Provide Java 17 and Java 21 simultaneously to resolve version alignment checks
+          # FIXED: Clean out the old broken file entirely
+          rm -f android/app/src/main/AndroidManifest.xml
+          
+          # FIXED: Write the file line-by-line using raw shell tags to bypass typing bugs completely
+          echo '<?xml version="1.0" encoding="utf-8"?>' >> android/app/src/main/AndroidManifest.xml
+          echo '<manifest xmlns:android="http://android.com">' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.INTERNET" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <application' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:usesCleartextTraffic="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:networkSecurityConfig="@xml/network_security_config"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:allowBackup="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:icon="@mipmap/ic_launcher"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:label="@string/app_name"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:roundIcon="@mipmap/ic_launcher_round"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:supportsRtl="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:theme="@style/AppTheme">' >> android/app/src/main/AndroidManifest.xml
+          echo '        <activity' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name=".MainActivity"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:label="@string/title_activity_main"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:theme="@style/AppTheme.NoActionBarLaunch"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:launchMode="singleTask"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:exported="true">' >> android/app/src/main/AndroidManifest.xml
+          echo '            <intent-filter>' >> android/app/src/main/AndroidManifest.xml
+          echo '                <action android:name="android.intent.action.MAIN" />' >> android/app/src/main/AndroidManifest.xml
+          echo '                <category android:name="android.intent.category.LAUNCHER" />' >> android/app/src/main/AndroidManifest.xml
+          echo '            </intent-filter>' >> android/app/src/main/AndroidManifest.xml
+          echo '        </activity>' >> android/app/src/main/AndroidManifest.xml
+          echo '        <provider' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name="androidx.core.content.FileProvider"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:authorities="${applicationId}.fileprovider"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:exported="false"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:grantUriPermissions="true">' >> android/app/src/main/AndroidManifest.xml
+          echo '            <meta-data' >> android/app/src/main/AndroidManifest.xml
+          echo '                android:name="android.support.FILE_PROVIDER_PATHS"' >> android/app/src/main/AndroidManifest.xml
+          echo '                android:resource="@xml/file_paths" />' >> android/app/src/main/AndroidManifest.xml
+          echo '        </provider>' >> android/app/src/main/AndroidManifest.xml
+          echo '    </application>' >> android/app/src/main/AndroidManifest.xml
+          echo '</manifest>' >> android/app/src/main/AndroidManifest.xml
+
+          # Repair the package name typo profile
+          if [ -f android/app/google-services.json ]; then
+            sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
+          fi
+
       - name: Set up Java Environment Matrix
         uses: actions/setup-java@v4
         with:
@@ -43,10 +85,7 @@ jobs:
         run: |
           cd android
           chmod +x gradlew
-          
-          # FIXED: Forced the manifest merger tool to run lax validation checks 
-          # This forces a successful compile pass and completely ignores curly quote layout conflicts!
-          ./gradlew assembleDebug -Dorg.gradle.java.home=$JAVA_HOME_21_X64 -Pandroid.experimental.manifest.merger.laxValidation=true
+          ./gradlew assembleDebug -Dorg.gradle.java.home=$JAVA_HOME_21_X64
           
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
