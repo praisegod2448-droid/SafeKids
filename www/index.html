@@ -28,10 +28,11 @@
         <h1>Safe Kids</h1>
         <p style="color: #666; margin-top: 0;">Parent Dashboard Terminal</p>
 
-        <div class="status online">✨ Device Monitoring Active</div>
+        <div id="connection-status" class="status online">✨ Device Monitoring Active</div>
 
+        <!-- FIXED: Direct web browser triggers added to double-check dead connections -->
         <button class="btn" onclick="updateLocation()">🛰️ Sync Live GPS Location</button>
-        <button class="btn" onclick="alert('Sending ping to device...')" style="background-color: #34a853;">🔔 Test Device Connection</button>
+        <button class="btn" onclick="sendPingTest()" style="background-color: #34a853;">🔔 Test Device Connection</button>
 
         <div class="info-grid">
             <div class="info-item">
@@ -50,11 +51,31 @@
         </div>
     </div>
 
-    <!-- Mandatory Capacitor Bridge Files -->
     <script src="cordova.js"></script>
     <script src="capacitor.js"></script>
 
+    <script src="https://gstatic.com"></script>
+    <script src="https://gstatic.com"></script>
+
     <script>
+        // FORCED DEBUG ALERT: Fires instantly on screen initialization
+        alert("Success: The newest code script layout is running!");
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAYAncbgqEYPuj4Noi1RVQwoOyaQdVCpAQ",
+            authDomain: "://firebaseapp.com",
+            databaseURL: "https://firebaseio.com",
+            projectId: "safekid-b9bcf",
+            storageBucket: "safekid-b9bcf.firebasestorage.app",
+            messagingSenderId: "230273927504",
+            appId: "1:230273927504:android:8aa367535245bb65e54455"
+        };
+
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const database = firebase.database();
+
         async function updateLocation() {
             const latEl = document.getElementById('lat');
             const lonEl = document.getElementById('lon');
@@ -65,54 +86,72 @@
             lonEl.innerText = "Syncing...";
 
             try {
-                // Verify Capacitor is loaded inside the native mobile environment
+                // If native plugins are failing, force a fallback tracking layer immediately
                 if (!window.Capacitor || !window.Capacitor.Plugins.Geolocation) {
-                    throw new Error("Capacitor Native Geolocation plugin not detected.");
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(function(pos) {
+                            renderTrackingSuccess(pos.coords.latitude, pos.coords.longitude);
+                        }, function(err) {
+                            alert("Location Error: " + err.message);
+                        });
+                    }
+                    return;
                 }
 
                 const Geolocation = window.Capacitor.Plugins.Geolocation;
 
-                // FORCE Android to trigger the native permission popup dialog window
                 let permissions = await Geolocation.checkPermissions();
                 if (permissions.location !== 'granted') {
                     permissions = await Geolocation.requestPermissions({ permissions: ['location'] });
                 }
 
                 if (permissions.location !== 'granted') {
-                    latEl.innerText = "Denied";
-                    lonEl.innerText = "Check Settings";
-                    mapPlaceholder.innerText = "Please enable location permission in Android App Info settings.";
+                    alert("Location access was denied.");
                     return;
                 }
 
-                // Fetch accurate hardware-level coordinates via native bridge
                 const position = await Geolocation.getCurrentPosition({
                     enableHighAccuracy: true,
                     timeout: 10000
                 });
 
-                const latitude = position.coords.latitude;
-                const longitude = position.coords.longitude;
-
-                latEl.innerText = latitude.toFixed(5);
-                lonEl.innerText = longitude.toFixed(5);
-
-                // Load the OpenStreetMap iframe module mapping window
-                const mapUrl = "https://openstreetmap.org" + 
-                               (longitude - 0.005) + "%2C" + (latitude - 0.003) + "%2C" + 
-                               (longitude + 0.005) + "%2C" + (latitude + 0.003) + 
-                               "&layer=mapnik&marker=" + latitude + "%2C" + longitude;
-                
-                mapFrame.src = mapUrl;
-                mapPlaceholder.style.display = 'none';
-                mapFrame.style.display = 'block';
+                renderTrackingSuccess(position.coords.latitude, position.coords.longitude);
 
             } catch (error) {
+                alert("Tracking Runtime Crash: " + error.message);
                 latEl.innerText = "Error";
-                lonEl.innerText = "Plugin Failure";
-                mapPlaceholder.innerText = error.message || "Native bridging setup failed.";
-                console.error(error);
+                lonEl.innerText = "Failed";
             }
+        }
+
+        function renderTrackingSuccess(latitude, longitude) {
+            document.getElementById('lat').innerText = latitude.toFixed(5);
+            document.getElementById('lon').innerText = longitude.toFixed(5);
+
+            // Push up live logs to database
+            database.ref('devices/device_01/tracking').set({
+                latitude: latitude,
+                longitude: longitude,
+                lastUpdated: new Date().toISOString()
+            });
+
+            const mapUrl = "https://openstreetmap.org" + 
+                           (longitude - 0.005) + "%2C" + (latitude - 0.003) + "%2C" + 
+                           (longitude + 0.005) + "%2C" + (latitude + 0.003) + 
+                           "&layer=mapnik&marker=" + latitude + "%2C" + longitude;
+            
+            document.getElementById('map-frame').src = mapUrl;
+            document.getElementById('map-placeholder').style.display = 'none';
+            document.getElementById('map-frame').style.display = 'block';
+        }
+
+        function sendPingTest() {
+            const timestamp = new Date().toLocaleTimeString();
+            database.ref('devices/device_01/pings').push({
+                sentAt: timestamp,
+                status: "PING_SENT"
+            });
+            alert("Connection ping sent successfully at " + timestamp);
         }
     </script>
 </body>
