@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- FIXED: Explicitly whitelist external map tile networks inside the web view sandbox -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://gstatic.com 'unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: https://*.openstreetmap.org https://google.com https://*.google.com; frame-src 'self' https://*.openstreetmap.org;">
-    
     <title>Safe Kids Parental Control</title>
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; text-align: center; }
@@ -20,8 +17,6 @@
         .info-item { background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; }
         .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
         .info-val { font-size: 15px; font-weight: bold; }
-        
-        /* Map Container Frame Layout */
         #map-container { height: 260px; width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid #ddd; overflow: hidden; background: #eef0f2; }
         #map-frame { width: 100%; height: 100%; border: none; display: none; }
         .placeholder-text { color: #888; font-size: 14px; padding: 80px 20px 0 20px; }
@@ -49,18 +44,18 @@
             </div>
         </div>
 
-        <!-- Visual Tracking Window Frame -->
         <div id="map-container">
             <div id="map-placeholder" class="placeholder-text">Tap "Sync Live GPS Location" to resolve map details.</div>
             <iframe id="map-frame" src=""></iframe>
         </div>
     </div>
 
+    <!-- Mandatory Capacitor Bridge Files -->
     <script src="cordova.js"></script>
     <script src="capacitor.js"></script>
 
     <script>
-        function updateLocation() {
+        async function updateLocation() {
             const latEl = document.getElementById('lat');
             const lonEl = document.getElementById('lon');
             const mapFrame = document.getElementById('map-frame');
@@ -69,42 +64,54 @@
             latEl.innerText = "Syncing...";
             lonEl.innerText = "Syncing...";
 
-            const geoOptions = {
-                enableHighAccuracy: true,
-                timeout: 15000,
-                maximumAge: 0
-            };
+            try {
+                // Verify Capacitor is loaded inside the native mobile environment
+                if (!window.Capacitor || !window.Capacitor.Plugins.Geolocation) {
+                    throw new Error("Capacitor Native Geolocation plugin not detected.");
+                }
 
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
+                const Geolocation = window.Capacitor.Plugins.Geolocation;
 
-                        latEl.innerText = latitude.toFixed(5);
-                        lonEl.innerText = longitude.toFixed(5);
+                // FORCE Android to trigger the native permission popup dialog window
+                let permissions = await Geolocation.checkPermissions();
+                if (permissions.location !== 'granted') {
+                    permissions = await Geolocation.requestPermissions({ permissions: ['location'] });
+                }
 
-                        // Generate a sandboxed open-source embed link to bypass external script restrictions
-                        const mapUrl = "https://openstreetmap.org" + 
-                                       (longitude - 0.005) + "%2C" + (latitude - 0.003) + "%2C" + 
-                                       (longitude + 0.005) + "%2C" + (latitude + 0.003) + 
-                                       "&layer=mapnik&marker=" + latitude + "%2C" + longitude;
-                        
-                        mapFrame.src = mapUrl;
-                        mapPlaceholder.style.display = 'none';
-                        mapFrame.style.display = 'block';
-                    },
-                    function(error) {
-                        latEl.innerText = "Error";
-                        lonEl.innerText = "Code: " + error.code;
-                        mapPlaceholder.innerText = "GPS signal request timed out or was rejected.";
-                    },
-                    geoOptions
-                );
-            } else {
+                if (permissions.location !== 'granted') {
+                    latEl.innerText = "Denied";
+                    lonEl.innerText = "Check Settings";
+                    mapPlaceholder.innerText = "Please enable location permission in Android App Info settings.";
+                    return;
+                }
+
+                // Fetch accurate hardware-level coordinates via native bridge
+                const position = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true,
+                    timeout: 10000
+                });
+
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                latEl.innerText = latitude.toFixed(5);
+                lonEl.innerText = longitude.toFixed(5);
+
+                // Load the OpenStreetMap iframe module mapping window
+                const mapUrl = "https://openstreetmap.org" + 
+                               (longitude - 0.005) + "%2C" + (latitude - 0.003) + "%2C" + 
+                               (longitude + 0.005) + "%2C" + (latitude + 0.003) + 
+                               "&layer=mapnik&marker=" + latitude + "%2C" + longitude;
+                
+                mapFrame.src = mapUrl;
+                mapPlaceholder.style.display = 'none';
+                mapFrame.style.display = 'block';
+
+            } catch (error) {
                 latEl.innerText = "Error";
-                lonEl.innerText = "Unsupported Device";
-                mapPlaceholder.innerText = "Engine missing native location components.";
+                lonEl.innerText = "Plugin Failure";
+                mapPlaceholder.innerText = error.message || "Native bridging setup failed.";
+                console.error(error);
             }
         }
     </script>
