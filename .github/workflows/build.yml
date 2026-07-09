@@ -15,24 +15,22 @@ jobs:
 
       - name: Sync Frontend Assets Into Native Folder
         run: |
-          # Generate base package layout if missing
+          # FIXED: Injected @capacitor/cli directly into the default package generator array template
           if [ ! -f package.json ]; then
             echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest"}}' > package.json
           fi
           
-          # Force install the core location tracking plugins
+          # Force clean install core tracking plugins alongside development command runners
           npm install
-          npm install @capacitor/geolocation
+          npm install @capacitor/cli @capacitor/core @capacitor/android @capacitor/geolocation
           
-          # FIXED: Dynamically repair the package name typo inside google-services.json if it exists
+          # Repair the package name typo string mismatch inline inside your configuration profile
           if [ -f android/app/google-services.json ]; then
             sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
           fi
           
-          # Copy your www/ files into the native Android folder assets
+          # Securely push web updates straight through the native compilation layer
           npx cap copy android
-          
-          # Synchronize configuration file structures
           npx cap sync android
 
       - name: Set up Java (Version 21)
