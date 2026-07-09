@@ -8,7 +8,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Modern Capacitor 6 auto-registers your @capacitor/geolocation plugins dynamically.
-        // Keeping this method block empty prevents compiler registry duplication errors!
+        // Modern Capacitor 6 auto-registers your plugins.
+        // Keeping this method block empty prevents code duplication compile crashes.
     }
 }
