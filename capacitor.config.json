@@ -1,0 +1,7 @@
+{
+  "appId": "com.safekids1.myapp",
+  "appName": "Safe Kids",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
+
