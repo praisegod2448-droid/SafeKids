@@ -8,6 +8,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Native core driver plugins link and load seamlessly here at initialization
+        // Modern Capacitor 6 auto-registers your @capacitor/geolocation tracking plugins.
+        // Keeping this method block empty prevents compiler registry duplication errors!
     }
 }
