@@ -21,6 +21,12 @@ jobs:
           # Clean install tracking packages alongside native building command runners
           npm install
           
+          # FIXED: Auto-replace mobile typing errors / curly quotes back to normal quotes inside AndroidManifest
+          if [ -f android/app/src/main/AndroidManifest.xml ]; then
+            sed -i 's/“/"/g' android/app/src/main/AndroidManifest.xml
+            sed -i 's/”/"/g' android/app/src/main/AndroidManifest.xml
+          fi
+
           # Repair the package name string mismatch typo inside your configuration profile
           if [ -f android/app/google-services.json ]; then
             sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
@@ -30,7 +36,7 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      # FIXED: Provide Java 17 and Java 21 simultaneously to resolve version alignment checks
+      # Provide Java 17 and Java 21 simultaneously to resolve version alignment checks
       - name: Set up Java Environment Matrix
         uses: actions/setup-java@v4
         with:
