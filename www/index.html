@@ -35,11 +35,12 @@
     <div class="info-grid">
         <div class="info-item">
             <div class="info-label">Latitude</div>
+            <!-- FIXED: Maintained consistent lowercase ID mappings -->
             <div id="lat" class="info-val">Not tracking</div>
         </div>
         <div class="info-item">
             <div class="info-label">Longitude</div>
-            <div id="lng" class="info-val">Not tracking</div>
+            <div id="lon" class="info-val">Not tracking</div>
         </div>
     </div>
 
@@ -49,18 +50,17 @@
     </div>
   </div>
 
-  <!-- Framework communication scripts loaded from offline local app roots -->
+  <!-- Bridge connectors compiled locally inside native storage frameworks -->
   <script src="cordova.js"></script>
   <script src="capacitor.js"></script>
 
-  <!-- Production-ready Firebase configuration scripts -->
+  <!-- Production-ready Firebase web client libraries -->
   <script src="https://gstatic.com"></script>
   <script src="https://gstatic.com"></script>
 
   <script>
     let database = null;
 
-    // Connect to your online Firebase nodes securely
     try {
         const firebaseConfig = {
             apiKey: "AIzaSyAYAncbgqEYPuj4Noi1RVQwoOyaQdVCpAQ",
@@ -76,28 +76,27 @@
         }
         database = firebase.database();
     } catch (e) {
-        console.error("Database connection initialization bypassed:", e);
+        console.error("Database tracking hook initialization bypassed:", e);
     }
 
     async function initializeTracking() {
       const statusMsg = document.getElementById('status-msg');
       const latSpan = document.getElementById('lat');
-      const lngSpan = document.getElementById('lng');
+      const lonSpan = document.getElementById('lon');
 
       statusMsg.innerText = "Requesting permissions...";
       statusMsg.style.color = "#555";
 
       try {
-        // Use the global platform container window rather than external URLs
         if (!window.Capacitor || !window.Capacitor.Plugins.Geolocation) {
-            alert("App platform waking up. Running browser tracker fallback configuration path.");
+            console.log("Capacitor ecosystem not ready, triggering fallback channel path.");
             fallbackTracker();
             return;
         }
 
         const Geolocation = window.Capacitor.Plugins.Geolocation;
 
-        // Force native system dialog popup window prompts
+        // Force native system dialog permission prompt window displays
         let perm = await Geolocation.checkPermissions();
         if (perm.location !== 'granted') {
             perm = await Geolocation.requestPermissions({ permissions: ['location'] });
@@ -112,14 +111,14 @@
         statusMsg.innerText = "Tracking Active";
         statusMsg.style.color = "green";
 
-        // Listen for hardware movement calculations continuously in the background
-        await Geolocation.watchPosition({ enableHighAccuracy: true, timeout: 10000 }, (position, err) => {
+        // Query device hardware tracking chips and capture incoming position coordinates streams
+        await Geolocation.watchPosition({ enableHighAccuracy: true, timeout: 15000 }, (position, err) => {
           if (position) {
             const latitude = position.coords.latitude;
             const longitude = position.coords.longitude;
             
             latSpan.innerText = latitude.toFixed(6);
-            lngSpan.innerText = longitude.toFixed(6);
+            lonSpan.innerText = longitude.toFixed(6);
             
             syncToFirebaseAndMap(latitude, longitude);
           }
@@ -139,30 +138,36 @@
     function fallbackTracker() {
         const statusMsg = document.getElementById('status-msg');
         if (navigator.geolocation) {
-            statusMsg.innerText = "Tracking Active (Web)";
+            statusMsg.innerText = "Tracking Active";
             statusMsg.style.color = "green";
             navigator.geolocation.watchPosition((pos) => {
                 document.getElementById('lat').innerText = pos.coords.latitude.toFixed(6);
-                document.getElementById('lng').innerText = pos.coords.longitude.toFixed(6);
+                document.getElementById('lon').innerText = pos.coords.longitude.toFixed(6);
                 syncToFirebaseAndMap(pos.coords.latitude, pos.coords.longitude);
             }, (err) => {
                 statusMsg.innerText = "Tracking Error: " + err.message;
                 statusMsg.style.color = "red";
-            }, { enableHighAccuracy: true });
+            }, { enableHighAccuracy: true, timeout: 15000 });
+        } else {
+            statusMsg.innerText = "GPS Unsupported";
+            statusMsg.style.color = "red";
         }
     }
 
     function syncToFirebaseAndMap(latitude, longitude) {
-        // Stream metrics up into your Firebase cloud node structure
         if (database) {
-            database.ref('devices/device_01/tracking').set({
-                latitude: latitude,
-                longitude: longitude,
-                lastUpdated: new Date().toISOString()
-            });
+            try {
+                database.ref('devices/device_01/tracking').set({
+                    latitude: latitude,
+                    longitude: longitude,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (dbError) {
+                console.error("Cloud tracking database synchronization error:", dbError);
+            }
         }
 
-        // Render coordinates inside your visual map canvas 
+        // Drop interactive marker pin directly onto our embedded dashboard map view frame
         const mapUrl = "https://openstreetmap.org" + 
                        (longitude - 0.005) + "%2C" + (latitude - 0.003) + "%2C" + 
                        (longitude + 0.005) + "%2C" + (latitude + 0.003) + 
