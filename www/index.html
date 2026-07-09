@@ -51,19 +51,24 @@
     <!-- Fallback native architecture framework bridge hooks -->
     <script src="cordova.js"></script>
     <script src="capacitor.js"></script>
-    <!-- Leaflet Open-Source Engine Engine Script Package -->
+    <!-- Leaflet Open-Source Engine Script Package -->
     <script src="https://unpkg.com"></script>
 
     <script>
         let mapInstance = null;
         let locationMarker = null;
 
-        // Automatically initialize map at base coordinate views on launch
+        // Automatically initialize map on launch
         window.addEventListener('DOMContentLoaded', () => {
-            mapInstance = L.map('map').setView([0, 0], 2); // Initial zoomed-out world baseline view
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(mapInstance);
+            try {
+                // FIXED: Set initial baseline view coordinates to USA center [39.8283, -98.5795]
+                mapInstance = L.map('map').setView([39.8283, -98.5795], 3); 
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap'
+                }).addTo(mapInstance);
+            } catch(e) {
+                console.error("Map initialization failed:", e);
+            }
         });
 
         function updateLocation() {
