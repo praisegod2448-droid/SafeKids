@@ -41,24 +41,54 @@
         </div>
     </div>
 
+    <!-- Essential script for Capacitor framework communication -->
+    <script src="capacitor.js"></script>
+
     <script>
-        function updateLocation() {
-            document.getElementById('lat').innerText = "Updating...";
-            document.getElementById('lon').innerText = "Updating...";
+        async function updateLocation() {
+            const latEl = document.getElementById('lat');
+            const lonEl = document.getElementById('lon');
             
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById('lat').innerText = position.coords.latitude.toFixed(5);
-                    document.getElementById('lon').innerText = position.coords.longitude.toFixed(5);
-                }, function(error) {
-                    document.getElementById('lat').innerText = "Permission Denied";
-                    document.getElementById('lon').innerText = "Check Location GPS";
-                });
-            } else {
-                alert("Geolocation is not supported by this device.");
+            latEl.innerText = "Syncing...";
+            lonEl.innerText = "Syncing...";
+
+            try {
+                // Safeguard check for running inside the native app build
+                if (!window.Capacitor || !window.Capacitor.Plugins.BackgroundGeolocation) {
+                    throw new Error("Plugin environment not initialized yet.");
+                }
+
+                const BackgroundGeolocation = window.Capacitor.Plugins.BackgroundGeolocation;
+
+                // Request permissions and open persistent native tracking
+                await BackgroundGeolocation.addWatcher(
+                    {
+                        backgroundMessage: "Safe Kids is securely monitoring device status.",
+                        backgroundTitle: "Tracking Active",
+                        requestPermissions: true,
+                        stale: false,
+                        distanceFilter: 10 
+                    },
+                    function(location, error) {
+                        if (error) {
+                            latEl.innerText = "Error";
+                            lonEl.innerText = "GPS Failed";
+                            console.error(error);
+                            return;
+                        }
+                        
+                        // Output results from native device background stream
+                        latEl.innerText = location.latitude.toFixed(5);
+                        lonEl.innerText = location.longitude.toFixed(5);
+                    }
+                );
+
+            } catch (err) {
+                latEl.innerText = "Error";
+                lonEl.innerText = "Check Plugin Setup";
+                console.error(err);
             }
         }
     </script>
 </body>
 </html>
-
