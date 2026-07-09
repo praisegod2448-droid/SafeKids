@@ -30,20 +30,18 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Set up Java (Version 21)
+      - name: Set up Java (Version 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+          java-version: '17'
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          ./gradlew assembleDebug
+          # Pass the standard local platform SDK location natively available on the runner instance
+          ./gradlew assembleDebug -Dorg.gradle.java.home=$JAVA_HOME
 
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
