@@ -24,7 +24,10 @@ jobs:
           npm install
           npm install @capacitor/geolocation
           
-          # Synchronize structural files to the Android build layer
+          # FIXED: Explicitly copy your www/ files into the native Android project folder assets
+          npx cap copy android
+          
+          # Synchronize structural configuration files
           npx cap sync android
 
       - name: Set up Java (Version 21)
