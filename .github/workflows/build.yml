@@ -30,19 +30,22 @@ jobs:
           npx cap copy android
           npx cap sync android
 
-      - name: Set up Java (Version 17)
+      # FIXED: Provide Java 17 and Java 21 simultaneously to resolve version alignment checks
+      - name: Set up Java Environment Matrix
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: |
+            17
+            21
 
       - name: Build Debug APK
         run: |
           cd android
           chmod +x gradlew
-          # Pass the standard local platform SDK location natively available on the runner instance
-          ./gradlew assembleDebug -Dorg.gradle.java.home=$JAVA_HOME
-
+          # Force the compiler to use Java 21 as the primary build runtime
+          ./gradlew assembleDebug -Dorg.gradle.java.home=$JAVA_HOME_21_X64
+          
       - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
