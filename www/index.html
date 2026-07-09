@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safe Kids Parental Control</title>
-    <!-- Leaflet Open-Source Mapping Visual Stylesheets -->
-    <link rel="stylesheet" href="https://unpkg.com" />
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; text-align: center; }
         .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 400px; }
@@ -18,8 +16,11 @@
         .info-item { background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; }
         .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
         .info-val { font-size: 15px; font-weight: bold; }
-        /* Map Canvas Layout Styling */
-        #map { height: 250px; width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid #ddd; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
+        
+        /* Fixed Map Container Structure */
+        #map-container { height: 250px; width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid #ddd; overflow: hidden; background: #eef0f2; display: flex; align-items: center; justify-content: center; }
+        #static-map { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .placeholder-text { color: #888; font-size: 14px; padding: 20px; }
     </style>
 </head>
 <body>
@@ -44,36 +45,23 @@
             </div>
         </div>
 
-        <!-- Visual Map Target Canvas Anchor -->
-        <div id="map"></div>
+        <!-- Embedded Map Layout Container -->
+        <div id="map-container">
+            <div id="map-placeholder" class="placeholder-text">Tap "Sync Live GPS Location" to load map tracking details.</div>
+            <img id="static-map" alt="Tracking Map Target View" />
+        </div>
     </div>
 
-    <!-- Fallback native architecture framework bridge hooks -->
+    <!-- Core Cross-Platform Native Runtime Hooks -->
     <script src="cordova.js"></script>
     <script src="capacitor.js"></script>
-    <!-- Leaflet Open-Source Engine Script Package -->
-    <script src="https://unpkg.com"></script>
 
     <script>
-        let mapInstance = null;
-        let locationMarker = null;
-
-        // Automatically initialize map on launch
-        window.addEventListener('DOMContentLoaded', () => {
-            try {
-                // FIXED: Set initial baseline view coordinates to USA center [39.8283, -98.5795]
-                mapInstance = L.map('map').setView([39.8283, -98.5795], 3); 
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap'
-                }).addTo(mapInstance);
-            } catch(e) {
-                console.error("Map initialization failed:", e);
-            }
-        });
-
         function updateLocation() {
             const latEl = document.getElementById('lat');
             const lonEl = document.getElementById('lon');
+            const mapImg = document.getElementById('static-map');
+            const mapPlaceholder = document.getElementById('map-placeholder');
 
             latEl.innerText = "Syncing...";
             lonEl.innerText = "Syncing...";
@@ -90,32 +78,30 @@
                         const latitude = position.coords.latitude;
                         const longitude = position.coords.longitude;
 
-                        // Render exact coordinates inside values fields
+                        // Display telemetry readouts on the dashboard UI card
                         latEl.innerText = latitude.toFixed(5);
                         lonEl.innerText = longitude.toFixed(5);
 
-                        // Visual Map Plot Refreshing Pipeline
-                        if (mapInstance) {
-                            mapInstance.setView([latitude, longitude], 15); // Auto-focus map onto target GPS spot
-                            
-                            if (locationMarker) {
-                                locationMarker.setLatLng([latitude, longitude]); // Relocate pin if it exists
-                            } else {
-                                locationMarker = L.marker([latitude, longitude]).addTo(mapInstance) // Generate marker drop
-                                    .bindPopup('<b>Child Location</b>').openPopup();
-                            }
-                        }
+                        // Generate a high-resolution, static tracking layout image instantly 
+                        // Maps coordinate points safely without external JS dependencies!
+                        const mapUrl = "https://google.com" + latitude + "," + longitude + "&zoom=15&size=500x300&markers=color:red%7C" + latitude + "," + longitude + "&sensor=false";
+                        
+                        mapImg.src = mapUrl;
+                        mapPlaceholder.style.display = 'none';
+                        mapImg.style.display = 'block';
                     },
                     function(error) {
                         latEl.innerText = "Error";
                         lonEl.innerText = "Code: " + error.code;
-                        console.error("GPS Integration Interrupted:", error);
+                        mapPlaceholder.innerText = "GPS Tracking timed out or access permission was rejected.";
+                        console.error("Native Geolocation Failure Profile:", error);
                     },
                     geoOptions
                 );
             } else {
                 latEl.innerText = "Error";
                 lonEl.innerText = "Unsupported Device";
+                mapPlaceholder.innerText = "Device browser engine lacks native tracking support.";
             }
         }
     </script>
