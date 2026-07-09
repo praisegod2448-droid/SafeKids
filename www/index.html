@@ -4,113 +4,79 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safe Kids Parental Control</title>
-    <!-- Include Leaflet Mapping Engine CSS Styles -->
-    <link rel="stylesheet" href="https://unpkg.com" />
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 15px; color: #333; text-align: center; }
-        .card { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 10px auto; max-width: 420px; box-sizing: border-box; }
-        h1 { color: #1a73e8; margin: 0 0 5px 0; font-size: 24px; }
-        .status { font-size: 16px; font-weight: bold; margin: 12px 0; padding: 8px; border-radius: 8px; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; text-align: center; }
+        .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 400px; }
+        h1 { color: #1a73e8; margin-bottom: 5px; font-size: 24px; }
+        .status { font-size: 18px; font-weight: bold; margin: 15px 0; padding: 10px; border-radius: 8px; }
         .online { background-color: #e6f4ea; color: #137333; }
-        .btn { background-color: #1a73e8; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 25px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s; margin-top: 10px; box-shadow: 0 2px 5px rgba(26,115,232,0.3); }
+        .btn { background-color: #1a73e8; color: white; border: none; padding: 12px 25px; font-size: 16px; border-radius: 25px; cursor: pointer; width: 100%; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         .btn:active { background-color: #1557b0; }
-        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; text-align: left; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; text-align: left; }
         .info-item { background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; }
-        .info-label { font-size: 11px; color: #666; text-transform: uppercase; font-weight: bold; }
-        .info-val { font-size: 14px; font-weight: bold; margin-top: 2px; }
-        
-        /* Map Container Box Styling */
-        #map { 
-            height: 250px; 
-            width: 100%; 
-            border-radius: 12px; 
-            margin-top: 15px; 
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.1);
-            background: #e5e3df;
-        }
+        .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
+        .info-val { font-size: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="card">
         <h1>Safe Kids</h1>
-        <p style="color: #666; margin: 0 0 10px 0; font-size: 14px;">Parent Dashboard Terminal</p>
-        
+        <p style="color: #666; margin-top: 0;">Parent Dashboard Terminal</p>
+
         <div class="status online">✨ Device Monitoring Active</div>
 
         <button class="btn" onclick="updateLocation()">🛰️ Sync Live GPS Location</button>
-        <button class="btn" onclick="alert('Device tracking channel cleared. Connection response latency: 42ms.')" style="background-color: #34a853; box-shadow: 0 2px 5px rgba(52,168,83,0.3);">🔔 Test Device Connection</button>
+        <button class="btn" onclick="alert('Sending ping to device...')" style="background-color: #34a853;">🔔 Test Device Connection</button>
 
         <div class="info-grid">
             <div class="info-item">
                 <div class="info-label">Current Latitude</div>
-                <div id="lat" class="info-val">Waiting...</div>
+                <div id="lat" class="info-val">Click Sync...</div>
             </div>
             <div class="info-item">
                 <div class="info-label">Current Longitude</div>
-                <div id="lon" class="info-val">Waiting...</div>
+                <div id="lon" class="info-val">Click Sync...</div>
             </div>
         </div>
-
-        <!-- This is where the live maps will render -->
-        <div id="map"></div>
     </div>
 
-    <!-- Include Leaflet Mapping Engine Core Scripts -->
-    <script src="https://unpkg.com"></script>
+    <!-- Fallback framework script hooks for hybrid wrappers -->
+    <script src="cordova.js"></script>
+    <script src="capacitor.js"></script>
+
     <script>
-        // Global variables to store map and marker references
-        let map;
-        let marker;
-
-        // Initialize a standard placeholder global map view centered on a universal layout coordinate point
-        function initMap() {
-                        
-                map = L.map('map').setView([0, 0], 2);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-        }
-
-        // Initialize the map system the moment the application layout mounts on your display screen
-        window.onload = initMap;
-
         function updateLocation() {
-            document.getElementById('lat').innerText = "Updating...";
-            document.getElementById('lon').innerText = "Updating...";
-            
+            const latEl = document.getElementById('lat');
+            const lonEl = document.getElementById('lon');
+
+            latEl.innerText = "Syncing...";
+            lonEl.innerText = "Syncing...";
+
+            // Configuration profile parameters for background location extraction
+            const geoOptions = {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            };
+
+            // Use the cross-platform geolocation architecture 
             if (navigator.geolocation) {
-                // High accuracy setup configurations tell Android to explicitly wake up the internal physical GPS framework
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const latitude = position.coords.latitude;
-                    const longitude = position.coords.longitude;
-                    
-                    // Update Text Outputs
-                    document.getElementById('lat').innerText = latitude.toFixed(5);
-                    document.getElementById('lon').innerText = longitude.toFixed(5);
-                    
-                    // Snap the interactive visual map directly to the newly captured coordinates and zoom in close
-                    map.setView([latitude, longitude], 16);
-                    
-                    // If a pin marker already exists from a past sync click, reposition it cleanly instead of drawing a new one
-                    if (marker) {
-                        marker.setLatLng([latitude, longitude]);
-                    } else {
-                        marker = L.marker([latitude, longitude]).addTo(map);
-                    }
-                    marker.bindPopup("<b>Target Child Device Location</b>").openPopup();
-                    
-                }, function(error) {
-                    document.getElementById('lat').innerText = "Access Blocked";
-                    document.getElementById('lon').innerText = "Check App GPS Permissions";
-                    alert("Location Sync failed. Please ensure your smartphone GPS switches are toggled ON inside your global system drawer.");
-                }, {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 0
-                });
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        latEl.innerText = position.coords.latitude.toFixed(5);
+                        lonEl.innerText = position.coords.longitude.toFixed(5);
+                    },
+                    function(error) {
+                        latEl.innerText = "Error";
+                        lonEl.innerText = "Code: " + error.code;
+                        console.error("GPS Error:", error);
+                    },
+                    geoOptions
+                );
             } else {
-                alert("Geolocation functions are fully blocked or unsupported within this local smartphone shell engine.");
+                latEl.innerText = "Error";
+                lonEl.innerText = "Unsupported Engine";
             }
         }
     </script>
