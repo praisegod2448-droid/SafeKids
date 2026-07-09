@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://android.com"
-    package="com.safekids1.myapp">
+<manifest xmlns:android="http://android.com">
 
-    <!-- Essential System Hardware Connection Configurations -->
+    <!-- Standard Core Network Access permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Standard Core Hardware Tracking location configurations -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    
-    <!-- Mandatory Core Tracking Hardware Drivers for Android 10+ -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-feature android:name="android.hardware.location.gps" />
+    <uses-feature android:name="android.hardware.location.gps" android:required="true" />
 
-    <!-- Foreground Service Flags Needed for Continuous Android 14+ Streaming -->
+    <!-- Foreground Service tracking permission settings for modern Android targeting -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
