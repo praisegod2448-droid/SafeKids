@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Safe Kids Parental Control</title>
+    <!-- Leaflet Open-Source Mapping Visual Stylesheets -->
+    <link rel="stylesheet" href="https://unpkg.com" />
     <style>
         body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f2f5; margin: 0; padding: 20px; color: #333; text-align: center; }
         .card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); margin: 20px auto; max-width: 400px; }
@@ -16,6 +18,8 @@
         .info-item { background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; }
         .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
         .info-val { font-size: 15px; font-weight: bold; }
+        /* Map Canvas Layout Styling */
+        #map { height: 250px; width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid #ddd; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -39,13 +43,29 @@
                 <div id="lon" class="info-val">Click Sync...</div>
             </div>
         </div>
+
+        <!-- Visual Map Target Canvas Anchor -->
+        <div id="map"></div>
     </div>
 
-    <!-- Fallback framework script hooks for hybrid wrappers -->
+    <!-- Fallback native architecture framework bridge hooks -->
     <script src="cordova.js"></script>
     <script src="capacitor.js"></script>
+    <!-- Leaflet Open-Source Engine Engine Script Package -->
+    <script src="https://unpkg.com"></script>
 
     <script>
+        let mapInstance = null;
+        let locationMarker = null;
+
+        // Automatically initialize map at base coordinate views on launch
+        window.addEventListener('DOMContentLoaded', () => {
+            mapInstance = L.map('map').setView([0, 0], 2); // Initial zoomed-out world baseline view
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(mapInstance);
+        });
+
         function updateLocation() {
             const latEl = document.getElementById('lat');
             const lonEl = document.getElementById('lon');
@@ -53,30 +73,44 @@
             latEl.innerText = "Syncing...";
             lonEl.innerText = "Syncing...";
 
-            // Configuration profile parameters for background location extraction
             const geoOptions = {
                 enableHighAccuracy: true,
-                timeout: 10000,
+                timeout: 15000,
                 maximumAge: 0
             };
 
-            // Use the cross-platform geolocation architecture 
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
                     function(position) {
-                        latEl.innerText = position.coords.latitude.toFixed(5);
-                        lonEl.innerText = position.coords.longitude.toFixed(5);
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        // Render exact coordinates inside values fields
+                        latEl.innerText = latitude.toFixed(5);
+                        lonEl.innerText = longitude.toFixed(5);
+
+                        // Visual Map Plot Refreshing Pipeline
+                        if (mapInstance) {
+                            mapInstance.setView([latitude, longitude], 15); // Auto-focus map onto target GPS spot
+                            
+                            if (locationMarker) {
+                                locationMarker.setLatLng([latitude, longitude]); // Relocate pin if it exists
+                            } else {
+                                locationMarker = L.marker([latitude, longitude]).addTo(mapInstance) // Generate marker drop
+                                    .bindPopup('<b>Child Location</b>').openPopup();
+                            }
+                        }
                     },
                     function(error) {
                         latEl.innerText = "Error";
                         lonEl.innerText = "Code: " + error.code;
-                        console.error("GPS Error:", error);
+                        console.error("GPS Integration Interrupted:", error);
                     },
                     geoOptions
                 );
             } else {
                 latEl.innerText = "Error";
-                lonEl.innerText = "Unsupported Engine";
+                lonEl.innerText = "Unsupported Device";
             }
         }
     </script>
