@@ -2,16 +2,16 @@
 <manifest xmlns:android="http://android.com"
     package="com.safekids1.myapp">
 
-    <!-- Network Access -->
+    <!-- Network Configuration -->
     <uses-permission android:name="android.permission.INTERNET" />
 
-    <!-- Standard and Background Tracking Permissions -->
+    <!-- Standard Location Flags -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-feature android:name="android.hardware.location.gps" />
 
-    <!-- Foreground Service Flags (Required for modern Android versions) -->
+    <!-- Foreground Service Flags for Modern Android API Levels -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
