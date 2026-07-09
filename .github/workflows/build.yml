@@ -24,10 +24,15 @@ jobs:
           npm install
           npm install @capacitor/geolocation
           
-          # FIXED: Explicitly copy your www/ files into the native Android project folder assets
+          # FIXED: Dynamically repair the package name typo inside google-services.json if it exists
+          if [ -f android/app/google-services.json ]; then
+            sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
+          fi
+          
+          # Copy your www/ files into the native Android folder assets
           npx cap copy android
           
-          # Synchronize structural configuration files
+          # Synchronize configuration file structures
           npx cap sync android
 
       - name: Set up Java (Version 21)
