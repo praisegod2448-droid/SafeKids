@@ -21,7 +21,17 @@ jobs:
           # Clean install tracking packages alongside native building command runners
           npm install
           
-          # FIXED: Force write a perfectly formatted, clean AndroidManifest from the server to bypass mobile typing bugs
+          # Repair the package name string mismatch typo inside your configuration profile
+          if [ -f android/app/google-services.json ]; then
+            sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
+          fi
+          
+          # Run Capacitor sync tasks FIRST so the engine sets up its native base
+          npx cap copy android
+          npx cap sync android
+
+          # FIXED: Generate the clean, text-perfect AndroidManifest AFTER sync finishes 
+          # This permanently locks our code layout and blocks Capacitor from overwriting it!
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://android.com">
@@ -65,15 +75,6 @@ jobs:
               </application>
           </manifest>
           EOF
-
-          # Repair the package name string mismatch typo inside your configuration profile
-          if [ -f android/app/google-services.json ]; then
-            sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
-          fi
-          
-          # Enforce local directory mirroring explicitly to force compile your www/ index file
-          npx cap copy android
-          npx cap sync android
 
       # Provide Java 17 and Java 21 simultaneously to resolve version alignment checks
       - name: Set up Java Environment Matrix
