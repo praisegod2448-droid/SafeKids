@@ -15,21 +15,18 @@ jobs:
 
       - name: Sync Frontend Assets Into Native Folder
         run: |
-          # FIXED: Injected @capacitor/cli directly into the default package generator array template
-          if [ ! -f package.json ]; then
-            echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest"}}' > package.json
-          fi
+          # Generate base package layout explicitly containing our required dependencies
+          echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest","@capacitor/geolocation":"latest"}}' > package.json
           
-          # Force clean install core tracking plugins alongside development command runners
+          # Clean install tracking packages alongside native building command runners
           npm install
-          npm install @capacitor/cli @capacitor/core @capacitor/android @capacitor/geolocation
           
-          # Repair the package name typo string mismatch inline inside your configuration profile
+          # Repair the package name string mismatch typo inside your configuration profile
           if [ -f android/app/google-services.json ]; then
             sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
           fi
           
-          # Securely push web updates straight through the native compilation layer
+          # Enforce local directory mirroring explicitly to force compile your www/ index file
           npx cap copy android
           npx cap sync android
 
