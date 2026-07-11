@@ -34,47 +34,58 @@ jobs:
           echo '<?xml version="1.0" encoding="utf-8"?><paths><external-path name="external_files" path="." /></paths>' > android/app/src/main/res/xml/file_paths.xml
           echo '<resources><string name="app_name">SafeKids</string><string name="title_activity_main">MainActivity</string></resources>' > android/app/src/main/res/values/strings.xml
 
-          # 5. FIXED: Removed the unsupported package="..." namespace wrapper entirely to prevent parsing failures
-          rm -f android/app/src/main/AndroidManifest.xml
-          
-          echo '<?xml version="1.0" encoding="utf-8"?>' >> android/app/src/main/AndroidManifest.xml
-          echo '<manifest xmlns:android="http://android.com">' >> android/app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.INTERNET" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
-          echo '    <application' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:usesCleartextTraffic="true"' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:networkSecurityConfig="@xml/network_security_config"' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:allowBackup="true"' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:label="@string/app_name"' >> android/app/src/main/AndroidManifest.xml
-          echo '        android:supportsRtl="true">' >> android/app/src/main/AndroidManifest.xml
-          echo '        <activity' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:name="com.safekids1.myapp.MainActivity"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:label="@string/title_activity_main"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:launchMode="singleTask"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:exported="true">' >> android/app/src/main/AndroidManifest.xml
-          echo '            <intent-filter>' >> android/app/src/main/AndroidManifest.xml
-          echo '                <action android:name="android.intent.action.MAIN" />' >> android/app/src/main/AndroidManifest.xml
-          echo '                <category android:name="android.intent.category.LAUNCHER" />' >> android/app/src/main/AndroidManifest.xml
-          echo '            </intent-filter>' >> android/app/src/main/AndroidManifest.xml
-          echo '        </activity>' >> android/app/src/main/AndroidManifest.xml
-          echo '        <provider' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:name="androidx.core.content.FileProvider"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:authorities="com.safekids1.myapp.fileprovider"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:exported="false"' >> android/app/src/main/AndroidManifest.xml
-          echo '            android:grantUriPermissions="true">' >> android/app/src/main/AndroidManifest.xml
-          echo '            <meta-data' >> android/app/src/main/AndroidManifest.xml
-          echo '                android:name="android.support.FILE_PROVIDER_PATHS"' >> android/app/src/main/AndroidManifest.xml
-          echo '                android:resource="@xml/file_paths" />' >> android/app/src/main/AndroidManifest.xml
-          echo '        </provider>' >> android/app/src/main/AndroidManifest.xml
-          echo '    </application>' >> android/app/src/main/AndroidManifest.xml
-          echo '</manifest>' >> android/app/src/main/AndroidManifest.xml
+          # 5. FIXED: Generate a safe independent builder tool to completely isolate XML strings from YAML parsers
+          cat << 'EOF' > generate_manifest.sh
+          #!/bin/bash
+          cat << 'XML' > android/app/src/main/AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://android.com">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
 
-          # 6. FIXED: Injected direct matching namespace keys inside app-level gradle to keep tool assemblies stable
+    <application
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+        
+        <activity
+            android:name="com.safekids1.myapp.MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:label="@string/title_activity_main"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.safekids1.myapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>
+XML
+EOF
+
+          # Run the freshly minted builder script safely 
+          chmod +x generate_manifest.sh
+          ./generate_manifest.sh
+          rm generate_manifest.sh
+
+          # 6. Injected direct matching namespace keys inside app-level gradle to keep tool assemblies stable
           if [ -f android/app/build.gradle ]; then
             sed -i 's/applicationId ".*"/applicationId "com.safekids1.myapp"/g' android/app/build.gradle
             sed -i 's/namespace ".*"/namespace "com.safekids1.myapp"/g' android/app/build.gradle
