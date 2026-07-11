@@ -25,8 +25,6 @@ jobs:
           
           # 3. Inject configuration to prevent "Capacitor project not found" errors
           echo '{"appId":"com.safekids1.myapp","appName":"safekids","webDir":"www","server":{"androidScheme":"https"}}' > capacitor.config.json
-          mkdir -p www
-          echo '<html><body>Safe Kids Target Assets</body></html>' > www/index.html
           
           # 4. FIXED: Corrected icon asset reference string from bs_launcher back to standard ic_launcher
           mkdir -p android/app/src/main
