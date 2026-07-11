@@ -19,9 +19,10 @@ jobs:
           mv settings.gradle android/ 2>/dev/null || true
           mv variables.gradle android/ 2>/dev/null || true
 
-          # 2. FIXED: Fix the invalid AGP 8.13.0 classpath typo inside android/build.gradle
+          # 2. FIXED: Upgrade AGP toolset version to 8.7.3 to satisfy modern Android library versions
           if [ -f android/build.gradle ]; then
-            sed -i 's/com.android.tools.build:gradle:8.13.0/com.android.tools.build:gradle:8.2.2/g' android/build.gradle
+            sed -i 's/com.android.tools.build:gradle:8.13.0/com.android.tools.build:gradle:8.7.3/g' android/build.gradle
+            sed -i 's/com.android.tools.build:gradle:8.2.2/com.android.tools.build:gradle:8.7.3/g' android/build.gradle
           fi
 
           # 3. Generate clean base package profile layout since it is missing at root
