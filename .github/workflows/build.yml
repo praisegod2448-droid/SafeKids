@@ -1,3 +1,18 @@
+name: Build Safe Kids APK
+on: [push, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js (Version 22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Sync Frontend Assets Into Native Folder
         run: |
           # Generate clean base package profile layout
@@ -8,7 +23,7 @@
           npx cap copy android
           npx cap sync android
 
-          # FIXED: Shifted flush-left to remove leading whitespace before the XML declaration
+          # FIXED: Clean out old file and write clean XML safely via multiline block literal
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://android.com">
@@ -56,3 +71,23 @@ EOF
           if [ -f android/app/google-services.json ]; then
             sed -i 's/"package_name": "com.safekid.myapp"/"package_name": "com.safekids1.myapp"/g' android/app/google-services.json
           fi
+
+      - name: Set up Java Environment Matrix
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: |
+            17
+            21
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug -Dorg.gradle.java.home=$JAVA_HOME_21_X64
+          
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SafeKidsApp
+          path: android/app/build/outputs/apk/debug/app-debug.apk
