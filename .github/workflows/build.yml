@@ -33,9 +33,55 @@ jobs:
           # 4. Inject configuration to prevent "Capacitor project not found" errors
           echo '{"appId":"com.safekids1.myapp","appName":"safekids","webDir":"www","server":{"androidScheme":"https"}}' > capacitor.config.json
 
-          # 5. FIXED: Re-encoded your manifest to include the correct schema URL, GPS feature flag, file provider, and the geolocation background engine service.
+          # 5. FIXED: Switched back to absolute line-by-line raw text writes to eliminate character encoding typos
           mkdir -p android/app/src/main
-          echo "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPG1hbmlmZXN0IHhtbG5zOmFuZHJvaWQ9Imh0dHA6Ly9zY2hlbWFzLmFuZHJvaWQuY29tL2Fway9yZXMvYW5kcm9pZCI+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIiAvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5BQ0NFU1NfQ09BUlNFX0xPQ0FUSU9OIiAvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5BQ0NFU1NfRklORV9MT0NBVElPTiIgLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uQUNDRVNTX0JBQ0tHUk9VTkRfTE9DQVRJT04iIC8+CiAgICA8dXNlcy1mZWF0dXJlIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5oYXJkd2FyZS5sb2NhdGlvbi5ncHMiIGFuZHJvaWQ6cmVxdWlyZWQ9InRydWUiIC8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIgLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uQ09ORklHX0ZPUkVHUk9VTkRfU0VSVklDRSIgLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uRk9SRUdST1VORF9TRVJWSUNFX0xPQ0FUSU9OIiAvPgogICAgPGFwcGxpY2F0aW9uCiAgICAgICAgYW5kcm9pZDp1c2VzQ2xlYXJ0ZXh0VHJhZmZpYz0idHJ1ZSIKICAgICAgICBhbmRyb2lkOm5ldHdvcmtTZWN1cml0eUNvbmZpZz0iQHhtbC9uZXR3b3JrX3NlY3VyaXR5X2NvbmZpZyIKICAgICAgICBhbmRyb2lkOmFsbG93QmFja3VwPSJ0cnVlIgogICAgICAgIGFuZHJvaWQ6aWNvbj0iQG1pcG1hcC9pY19sYXVuY2hlciIKICAgICAgICBhbmRyb2lkOmxhYmVsPSJAc3RyaW5nL2FwcF9uYW1lIgogICAgICAgIGFuZHJvaWQ6cm91bmRJY29uPSJAbWlwbWFwL2ljX2xhdW5jaGVyX3JvdW5kIgogICAgICAgIGFuZHJvaWQ6c3VwcG9ydHNSdGw9InRydWUiCiAgICAgICAgYW5kcm9pZDp0aGVtZT0iQHN0eWxlL0FwcFRoZW1lIj4KICAgICAgICA8YWN0aXZpdHkKICAgICAgICAgICAgYW5kcm9pZDpjb25maWdDaGFbmdlcz0ib3JpZW50YXRpb258a2V5Ym9hcmRIaWRkZW58a2V5Ym9hcmR8c2NyZWVuU2l6ZXxsb2NhbGV8c21hbGxlc3RTY3JlZW5TaXplfHNjcmVlbkxheW91dHx1aU1vZGV8bmF2aWdhdGlvbnxkZW5zaXR5IgogICAgICAgICAgICBhbmRyb2lkOm5hbWU9Ii5NYWluQWN0aXZpdHkiCiAgICAgICAgICAgIGFuZHJvaWQ6bGFiZWw9IkBzdHJpbmcvdGl0bGVfYWN0aXZpdHlfbWFpbiIKICAgICAgICAgICAgYW5kcm9pZDp0aGVtZT0iQHN0eWxlL0FwcFRoZW1lLk5vQWN0aW9uQmFyTGF1bmNoIgogICAgICAgICAgICBhbmRyb2lkOmxhdW5jaE1vZGU9InNpbmdsZVRhc2siCiAgICAgICAgICAgIGFuZHJvaWQ6ZXhwb3J0ZWQ9InRydWUiPgogICAgICAgICAgICA8aW50ZW50LWZpbHRlcj4KICAgICAgICAgICAgICAgIDxhY3Rpb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLmludGVudC5hY3Rpb24uTUFJTiIgLz4KICAgICAgICAgICAgICAgIDxjYXRlZ29yeIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5pbnRlbnQuY2F0ZWdvcnkuTEFVTkNIRVIiIC8+CiAgICAgICAgICAgIDwvaW50ZW50LWZpbHRlcj4KICAgICAgICA8L2FjdGl2aXR5PgogICAgICAgIDxwcm92aWRlcgogICAgICAgICAgICBhbmRyb2lkOm5hbWU9ImFuZHJvaWR4LmNvcmUuY29udGVudC5GaWxlUHJvdmlkZXIiCiAgICAgICAgICAgIGFuZHJvaWQ6YXV0aG9yaXRpZXM9IiR7YXBwbGljYXRpb25JZH0uZmlsZXByb3ZpZGVyIgogICAgICAgICAgICBhbmRyb2lkOmV4cG9ydGVkPSJmYWxzZSIKICAgICAgICAgICAgYW5kcm9pZDpncmFudFVyaVBlcm1pc3Npb25zPSJ0cnVlIj4KICAgICAgICAgICAgPG1ldGEtZGF0YQogICAgICAgICAgICAgICAgYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnN1cHBvcnQuRklMRV9QUk9WSURFUl9QQVRIUyIKICAgICAgICAgICAgICAgIGFuZHJvaWQ6cmVzb3VyY2U9IkB4bWwvZmlsZV9wYXRocyIgLz4KICAgICAgICA8L3Byb3ZpZGVyPgogICAgICAgIDxzZXJ2aWNlCiAgICAgICAgICAgIGFuZHJvaWQ6bmFtZT0iY29tLmNhcGFjaXRvcmpzLnBsdWdpbnMuZ2VvbG9jYXRpb24uR2VvbG9jYXRpb25TZXJ2aWNlIgogICAgICAgICAgICBhbmRyb2lkOmZvcmVncm91bmRTZXJ2aWNlVHlwZT0ibG9jYXRpb24iCiAgICAgICAgICAgIGFuZHJvaWQ6ZXhwb3J0ZWQ9ImZhbHNlIiAvPgogICAgPC9hcHBsaWNhdGlvbj4KPC9tYW5pZmVzdD4=" | base64 -d > android/app/src/main/AndroidManifest.xml
+          rm -f android/app/src/main/AndroidManifest.xml
+          
+          echo '<?xml version="1.0" encoding="utf-8"?>' >> android/app/src/main/AndroidManifest.xml
+          echo '<manifest xmlns:android="http://android.com">' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.INTERNET" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-feature android:name="android.hardware.location.gps" android:required="true" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    <application' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:usesCleartextTraffic="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:networkSecurityConfig="@xml/network_security_config"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:allowBackup="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:icon="@mipmap/ic_launcher"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:label="@string/app_name"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:roundIcon="@mipmap/ic_launcher_round"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:supportsRtl="true"' >> android/app/src/main/AndroidManifest.xml
+          echo '        android:theme="@style/AppTheme">' >> android/app/src/main/AndroidManifest.xml
+          echo '        <activity' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name=".MainActivity"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:label="@string/title_activity_main"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:theme="@style/AppTheme.NoActionBarLaunch"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:launchMode="singleTask"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:exported="true">' >> android/app/src/main/AndroidManifest.xml
+          echo '            <intent-filter>' >> android/app/src/main/AndroidManifest.xml
+          echo '                <action android:name="android.intent.action.MAIN" />' >> android/app/src/main/AndroidManifest.xml
+          echo '                <category android:name="android.intent.category.LAUNCHER" />' >> android/app/src/main/AndroidManifest.xml
+          echo '            </intent-filter>' >> android/app/src/main/AndroidManifest.xml
+          echo '        </activity>' >> android/app/src/main/AndroidManifest.xml
+          echo '        <provider' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name="androidx.core.content.FileProvider"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:authorities="${applicationId}.fileprovider"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:exported="false"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:grantUriPermissions="true">' >> android/app/src/main/AndroidManifest.xml
+          echo '            <meta-data' >> android/app/src/main/AndroidManifest.xml
+          echo '                android:name="android.support.FILE_PROVIDER_PATHS"' >> android/app/src/main/AndroidManifest.xml
+          echo '                android:resource="@xml/file_paths" />' >> android/app/src/main/AndroidManifest.xml
+          echo '        </provider>' >> android/app/src/main/AndroidManifest.xml
+          echo '        <service' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:name="com.capacitorjs.plugins.geolocation.GeolocationService"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:foregroundServiceType="location"' >> android/app/src/main/AndroidManifest.xml
+          echo '            android:exported="false" />' >> android/app/src/main/AndroidManifest.xml
+          echo '    </application>' >> android/app/src/main/AndroidManifest.xml
+          echo '</manifest>' >> android/app/src/main/AndroidManifest.xml
 
           # 6. Synchronize assets to native build space
           npx cap copy android
