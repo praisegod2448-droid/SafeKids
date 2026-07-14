@@ -15,7 +15,7 @@ jobs:
 
       - name: Sync Frontend Assets Into Native Folder
         run: |
-          # 1. FIXED: Added strict parent indent spaces to encapsulate terminal blocks perfectly
+          # 1. Write package configuration using standard EOF
           cat << EOF > package.json
           {
             "name": "safekids",
@@ -30,7 +30,7 @@ jobs:
           EOF
           npm install
           
-          # 2. FIXED: Encapsulating web environment configuration assets via clean spacing tags
+          # 2. Generate a web folder and configuration profile
           mkdir -p www
           if [ -f index.html ]; then
             cp index.html www/index.html
@@ -57,10 +57,28 @@ jobs:
           mkdir -p android/app/src/main/res/mipmap-hdpi
           mkdir -p android/app/src/main/res/values
 
-          # 5. Generate valid XML support structures to satisfy Manifest reference checks
-          echo "<?xml version=1.0 encoding=utf-8?><network-security-config><base-config cleartextTrafficPermitted=true /></network-security-config>" > android/app/src/main/res/xml/network_security_config.xml
-          echo "<?xml version=1.0 encoding=utf-8?><paths><external-path name=external_files path=. /></paths>" > android/app/src/main/res/xml/file_paths.xml
-          echo "<resources><string name=app_name>SafeKids</string><string name=title_activity_main>MainActivity</string></resources>" > android/app/src/main/res/values/strings.xml
+          # 5. FIXED: Writes perfectly double-quoted support XML maps using clear multiline block redirects
+          cat << EOF > android/app/src/main/res/xml/network_security_config.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <network-security-config>
+              <base-config cleartextTrafficPermitted="true" />
+          </network-security-config>
+          EOF
+
+          cat << EOF > android/app/src/main/res/xml/file_paths.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <paths>
+              <external-path name="external_files" path="." />
+          </paths>
+          EOF
+
+          cat << EOF > android/app/src/main/res/values/strings.xml
+          <?xml version="1.0" encoding="utf-8"?>
+          <resources>
+              <string name="app_name">SafeKids</string>
+              <string name="title_activity_main">MainActivity</string>
+          </resources>
+          EOF
 
           # 6. Writes the corrected XML manifest directly to avoid string wrapping errors
           rm -f android/app/src/main/AndroidManifest.xml
