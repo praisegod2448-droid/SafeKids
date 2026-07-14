@@ -15,8 +15,8 @@ jobs:
 
       - name: Sync Frontend Assets Into Native Folder
         run: |
-          # 1. FIXED: Write package.json safely using a multiline redirect to prevent YAML string boundary crashes
-          cat << 'EOF' > package.json
+          # 1. FIXED: Write package configuration using standard EOF without any single quote flags
+          cat << EOF > package.json
 {
   "name": "safekids",
   "version": "1.0.0",
@@ -30,7 +30,7 @@ jobs:
 EOF
           npm install
           
-          # 2. FIXED: Write capacitor.config.json safely without inline single quote collisions
+          # 2. FIXED: Generate a web folder and a clean JSON engine layout config profile
           mkdir -p www
           if [ -f index.html ]; then
             cp index.html www/index.html
@@ -38,7 +38,7 @@ EOF
             echo "<html><body>SafeKids Stub</body></html>" > www/index.html
           fi
           
-          cat << 'EOF' > capacitor.config.json
+          cat << EOF > capacitor.config.json
 {
   "appId": "com.safekids1.myapp",
   "appName": "SafeKids",
@@ -58,13 +58,13 @@ EOF
           mkdir -p android/app/src/main/res/values
 
           # 5. Generate valid XML support structures to satisfy Manifest reference checks
-          echo '<?xml version="1.0" encoding="utf-8"?><network-security-config><base-config cleartextTrafficPermitted="true" /></network-security-config>' > android/app/src/main/res/xml/network_security_config.xml
-          echo '<?xml version="1.0" encoding="utf-8"?><paths><external-path name="external_files" path="." /></paths>' > android/app/src/main/res/xml/file_paths.xml
-          echo '<resources><string name="app_name">SafeKids</string><string name="title_activity_main">MainActivity</string></resources>' > android/app/src/main/res/values/strings.xml
+          echo "<?xml version=1.0 encoding=utf-8?><network-security-config><base-config cleartextTrafficPermitted=true /></network-security-config>" > android/app/src/main/res/xml/network_security_config.xml
+          echo "<?xml version=1.0 encoding=utf-8?><paths><external-path name=external_files path=. /></paths>" > android/app/src/main/res/xml/file_paths.xml
+          echo "<resources><string name=app_name>SafeKids</string><string name=title_activity_main>MainActivity</string></resources>" > android/app/src/main/res/values/strings.xml
 
           # 6. Writes the corrected XML manifest directly to avoid string wrapping errors
           rm -f android/app/src/main/AndroidManifest.xml
-          cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+          cat << EOF > android/app/src/main/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://android.com">
     <uses-permission android:name="android.permission.INTERNET" />
