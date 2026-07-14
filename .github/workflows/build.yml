@@ -19,7 +19,7 @@ jobs:
           echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest","@capacitor/geolocation":"latest"}}' > package.json
           npm install
           
-          # FIXED: Create a stub web directory and a configuration file to satisfy Capacitor constraints
+          # 2. Create web asset requirements to prevent Capacitor initialization crashes
           mkdir -p www
           if [ -f index.html ]; then
             cp index.html www/index.html
@@ -29,27 +29,64 @@ jobs:
           
           echo '{"appId":"com.safekids1.myapp","appName":"SafeKids","webDir":"www","bundledWebRuntime":false}' > capacitor.config.json
 
-          # 2. Force bootstrap the Android native project structure safely
+          # 3. Force bootstrap the Android native project structure
           npx cap android add || true
           npx cap copy android
           npx cap sync android
 
-          # 3. Ensure all target asset directories exist before writing configuration payloads
+          # 4. Ensure all target asset directories exist before writing configuration payloads
           mkdir -p android/app/src/main/res/xml
           mkdir -p android/app/src/main/res/mipmap-hdpi
           mkdir -p android/app/src/main/res/values
 
-          # 4. Generate valid XML support structures to satisfy Manifest reference checks
+          # 5. Generate valid XML support structures to satisfy Manifest reference checks
           echo '<?xml version="1.0" encoding="utf-8"?><network-security-config><base-config cleartextTrafficPermitted="true" /></network-security-config>' > android/app/src/main/res/xml/network_security_config.xml
           echo '<?xml version="1.0" encoding="utf-8"?><paths><external-path name="external_files" path="." /></paths>' > android/app/src/main/res/xml/file_paths.xml
           echo '<resources><string name="app_name">SafeKids</string><string name="title_activity_main">MainActivity</string></resources>' > android/app/src/main/res/values/strings.xml
 
-          # 5. Decodes a clean base64 string directly into the manifest to completely bypass YAML syntax bugs
-          # 5. FIXED: Decodes a structurally valid manifest layout to clear AAPT resource linking rules
+          # 6. FIXED: Writes the corrected XML manifest directly to avoid string wrapping errors
           rm -f android/app/src/main/AndroidManifest.xml
-          echo "PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPG1hbmlmZXN0IHhtbG5zOmFuZHJvaWQ9Imh0dHA6Ly9zY2hlbWFzLmFuZHJvaWQuY29tL2Fway9yZXMvYW5kcm9pZCI+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLklOVEVSTkVUIiAvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5BQ0NFU1NfQ09BUlNFX0xPQ0FUSU9OIiAvPgogICAgPHVzZXMtcGVybWlzc2lvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQucGVybWlzc2lvbi5BQ0NFU1NfRklORV9MT0NBVElPTiIgLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uQUNDRVNTX0JBQ0tHUk9VTkRfTE9DQVRJT04iIC8+CiAgICA8dXNlcy1wZXJtaXNzaW9uIGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5wZXJtaXNzaW9uLkZPUkVHUk9VTkRfU0VSVklDRSIgLz4KICAgIDx1c2VzLXBlcm1pc3Npb24gYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnBlcm1pc3Npb24uRk9SRUdST1VORF9TRVJWSUNFX0xPQ0FUSU9OIiAvPgogICAgPGFwcGxpY2F0aW9uCiAgICAgICAgYW5kcm9pZDp1c2VzQ2xlYXJ0ZXh0VHJhZmZpYz0idHJ1ZSIKICAgICAgICBhbmRyb2lkOm5ldHdvcmtTZWN1cml0eUNvbmZpZz0iQHhtbC9uZXR3b3JrX3NlY3VyaXR5X2NvbmZpZyIKICAgICAgICBhbmRyb2lkOmFsbG93QmFja3VwPSJ0cnVlIgogICAgICAgIGFuZHJvaWQ6bGFiZWw9IkBzdHJpbmcvYXBwX25hbWUiCiAgICAgICAgYW5kcm9pZDpzdXBwb3J0c1J0bD0idHJ1ZSI+CiAgICAgICAgPGFjdGl2aXR5CiAgICAgICAgICAgIGFuZHJvaWQ6bmFtZT0iY29tLnNhZmVraWRzMS5teWFwcC5MailuQWN0aXZpdHkiCiAgICAgICAgICAgIGFuZHJvaWQ6Y29uZmlnQ2hhbmdlcz0ib3JpZW50YXRpb258a2V5Ym9hcmRIaWRkZW58a2V5Ym9hcmR8c2NyZWVuU2l6ZXtsb2NhbGV8c21hbGxlc3RTY3JlZW5TaXplfHNjcmVlbkxheW91dHx1aU1vZGV8bmF2aWdhdGlvbnxkZW5zaXR5IgogICAgICAgICAgICBhbmRyb2lkOmxhYmVsPSJAc3RyaW5nL3RpdGxlX2FjdGl2aXR5X21haW4iCiAgICAgICAgICAgIGFuZHJvaWQ6bGF1bmNoTW9kZT0ic2luZ2xlVGFzayIKICAgICAgICAgICAgYW5kcm9pZDpleHBvcnRlZD0idHJ1ZSI+CiAgICAgICAgICAgIDxpbnRlbnQtZmlsdGVyPgogICAgICAgICAgICAgICAgPGFjdGlvbiBhbmRyb2lkOm5hbWU9ImFuZHJvaWQuaW50ZW50LmFjdGlvbi5NQUlOIiAvPgogICAgICAgICAgICAgICAgPGNhdGVnb3J5IGFuZHJvaWQ6bmFtZT0iYW5kcm9pZC5pbnRlbnQuY2F0ZWdvcnkuTEFVTkNIRVIiIC8+CiAgICAgICAgICAgIDwvaW50ZW50LWZpbHRlcj4KICAgICAgICA8L2FjdGl2aXR5PgogICAgICAgIDxwcm92aWRlcwogICAgICAgICAgICBhbmRyb2lkOm5hbWU9ImFuZHJvaWR4LmNvcmUuY29udGVudC5GaWxlUHJvdmlkZXIiCiAgICAgICAgICAgIGFuZHJvaWQ6YXV0aG9yaXRpZXM9ImNvbS5zYWZla2lkczEubXlhcHAuZmlsZXByb3ZpZGVyIgogICAgICAgICAgICBhbmRyb2lkOmV4cG9ydGVkPSJmYWxzZSIKICAgICAgICAgICAgYW5kcm9pZDpncmFudFVyaVBlcm1pc3Npb25zPSJ0cnVlIj4KICAgICAgICAgICAgPG1ldGEtZGF0YQogICAgICAgICAgICAgICAgYW5kcm9pZDpuYW1lPSJhbmRyb2lkLnN1cHBvcnQuRklMRV9QUk9WSURFUl9QQVRIUyIKICAgICAgICAgICAgICAgIGFuZHJvaWQ6cmVzb3VyY2U9IkBhtbC9maWxlX3BhdGhzIiAvPgogICAgICAgIDwvcHJvdmlkZXI+CiAgICA8L2FwcGxpY2F0aW9uPgo8L21hbmlmZXN0Pg==" | base64 -d > android/app/src/main/AndroidManifest.xml
+          cat << 'EOF' > android/app/src/main/AndroidManifest.xml
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://android.com">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
+    
+    <application
+        android:usesCleartextTraffic="true"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:allowBackup="true"
+        android:label="@string/app_name"
+        android:supportsRtl="true">
+        <activity
+            android:name="com.safekids1.myapp.MainActivity"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode|navigation|density"
+            android:label="@string/title_activity_main"
+            android:launchMode="singleTask"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="com.safekids1.myapp.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+    </application>
+</manifest>
+EOF
 
-          # 6. Injected direct matching namespace keys inside app-level gradle to keep tool assemblies stable
+          # 7. Injected direct matching namespace keys inside app-level gradle to keep tool assemblies stable
           if [ -f android/app/build.gradle ]; then
             sed -i 's/applicationId ".*"/applicationId "com.safekids1.myapp"/g' android/app/build.gradle
             sed -i 's/namespace ".*"/namespace "com.safekids1.myapp"/g' android/app/build.gradle
