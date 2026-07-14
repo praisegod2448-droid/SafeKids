@@ -3,64 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- FIXED: Expanded CSP parameters to allow Firebase CDN scripts and OpenStreetMap iframe rendering -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: https://*.firebaseio.com https://*.firebaseapp.com https://*.googleapis.com https://*.gstatic.com 'unsafe-eval'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.gstatic.com; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: https://*.openstreetmap.org https://*.tile.openstreetmap.org https://google.com https://*.google.com; frame-src 'self' https://*.openstreetmap.org https://openstreetmap.org;">
   <title>Safe Kids Dashboard</title>
   <style>
-    body { font-family: sans-serif; background: #f0f2f5; text-align: center; padding: 20px; color: #333; }
-    .card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }
-    h1 { color: #1a73e8; font-size: 24px; }
-    button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 16px; cursor: pointer; width: 100%; margin-top: 15px; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f2f5; text-align: center; padding: 20px; color: #333; }
+    .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 400px; margin: 20px auto; }
+    h1 { color: #1a73e8; font-size: 24px; margin-bottom: 5px; }
+    button { background: #1a73e8; color: white; border: none; padding: 12px 24px; border-radius: 25px; font-size: 16px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 15px; transition: 0.3s; }
     button:active { background: #1557b0; }
-    .status { margin-top: 15px; font-weight: bold; color: #555; }
+    .status { margin-top: 15px; font-weight: bold; color: #555; background: #eef0f2; padding: 8px; border-radius: 8px; }
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; text-align: left; }
+    .info-item { background: #f8f9fa; padding: 10px; border-radius: 8px; border-left: 4px solid #1a73e8; }
+    .info-label { font-size: 12px; color: #666; text-transform: uppercase; }
+    .info-val { font-size: 15px; font-weight: bold; }
+    #map-container { height: 260px; width: 100%; margin-top: 20px; border-radius: 10px; border: 1px solid #ddd; overflow: hidden; background: #eef0f2; }
+    #map-frame { width: 100%; height: 100%; border: none; display: none; }
+    .placeholder-text { color: #888; font-size: 14px; padding: 80px 20px 0 20px; }
   </style>
 </head>
 <body>
 
   <div class="card">
     <h1>🛡️ Safe Kids</h1>
-    <p>Parental Tracking Service</p>
-    <hr>
-    <div id="location-display">
-      <p><strong>Latitude:</strong> <span id="lat">Not tracking</span></p>
-      <p><strong>Longitude:</strong> <span id="lng">Not tracking</span></p>
-    </div>
+    <p style="color: #666; margin-top: 0;">Parental Tracking Service</p>
+    <hr style="border: 0; border-top: 1px solid #eee;">
+    
     <div class="status" id="status-msg">Service Status: Idle</div>
-    <button id="track-btn">Start Live Tracking</button>
+    
+    <button id="track-btn" onclick="initializeTracking()">Start Live Tracking</button>
+
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">Latitude</div>
+            <div id="lat" class="info-val">Not tracking</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Longitude</div>
+            <div id="lon" class="info-val">Not tracking</div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div id="map-placeholder" class="placeholder-text">Tap "Start Live Tracking" to view map streaming values.</div>
+        <iframe id="map-frame" src=""></iframe>
+    </div>
   </div>
 
-  <!-- Capacitor Logic to Fetch GPS Coordinates -->
-  <script type="module">
-    import { Geolocation } from 'https://unpkg.com';
+  <!-- Keep wrappers intact for native environments if needed -->
+  <script src="cordova.js"></script>
+  <script src="capacitor.js"></script>
 
-    const trackBtn = document.getElementById('track-btn');
-    const latSpan = document.getElementById('lat');
-    const lngSpan = document.getElementById('lng');
-    const statusMsg = document.getElementById('status-msg');
+  <!-- FIXED: Embedded explicit legibly working Firebase Web App compatibility imports -->
+  <script src="https://gstatic.com"></script>
+  <script src="https://gstatic.com"></script>
 
-    trackBtn.addEventListener('click', async () => {
+  <script>
+    let database = null;
+
+    try {
+        const firebaseConfig = {
+            apiKey: "AIzaSyAYAncbgqEYPuj4Noi1RVQwoOyaQdVCpAQ",
+            authDomain: "://firebaseapp.com",
+            databaseURL: "https://firebaseio.com",
+            projectId: "safekid-b9bcf",
+            storageBucket: "safekid-b9bcf.firebasestorage.app",
+            messagingSenderId: "230273927504",
+            appId: "1:230273927504:android:8aa367535245bb65e54455"
+        };
+        if (firebase.apps.length === 0) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        database = firebase.database();
+    } catch (e) {
+        console.error("Database tracking hook initialization bypassed:", e);
+    }
+
+    async function initializeTracking() {
+      const statusMsg = document.getElementById('status-msg');
+      const latSpan = document.getElementById('lat');
+      const lonSpan = document.getElementById('lon');
+
       statusMsg.innerText = "Requesting permissions...";
+      statusMsg.style.color = "#555";
+
       try {
-        // Request GPS access on the device
-        await Geolocation.requestPermissions();
+        if (!window.Capacitor || !window.Capacitor.Plugins || !window.Capacitor.Plugins.Geolocation) {
+            console.log("Capacitor ecosystem not ready, triggering fallback channel path.");
+            fallbackTracker();
+            return;
+        }
+
+        const Geolocation = window.Capacitor.Plugins.Geolocation;
+
+        let perm = await Geolocation.checkPermissions();
+        if (perm.location !== 'granted') {
+            perm = await Geolocation.requestPermissions({ permissions: ['location'] });
+        }
+
+        if (perm.location !== 'granted') {
+            statusMsg.innerText = "Permission Denied";
+            statusMsg.style.color = "red";
+            return;
+        }
+
         statusMsg.innerText = "Tracking Active";
         statusMsg.style.color = "green";
 
-        // Watch position updates in real-time
-        await Geolocation.watchPosition({ enableHighAccuracy: true }, (position, err) => {
+        await Geolocation.watchPosition({ enableHighAccuracy: true, timeout: 15000 }, (position, err) => {
           if (position) {
-            latSpan.innerText = position.coords.latitude.toFixed(6);
-            lngSpan.innerText = position.coords.longitude.toFixed(6);
+            const latitude = position.coords.latitude;
+            const longitude = position.coords.longitude;
+            
+            latSpan.innerText = latitude.toFixed(6);
+            lonSpan.innerText = longitude.toFixed(6);
+            
+            syncToFirebaseAndMap(latitude, longitude);
           }
           if (err) {
-            statusMsg.innerText = "Tracking Error: " + err.message;
+            statusMsg.innerText = "GPS Error: " + err.message;
             statusMsg.style.color = "red";
           }
         });
+
       } catch (error) {
-        statusMsg.innerText = "Permission Denied";
+        statusMsg.innerText = "System Failure";
         statusMsg.style.color = "red";
+        console.error(error);
       }
-    });
+    }
+
+    function fallbackTracker() {
+        const statusMsg = document.getElementById('status-msg');
+        if (navigator.geolocation) {
+            statusMsg.innerText = "Tracking Active";
+            statusMsg.style.color = "green";
+            navigator.geolocation.watchPosition((pos) => {
+                document.getElementById('lat').innerText = pos.coords.latitude.toFixed(6);
+                document.getElementById('lon').innerText = pos.coords.longitude.toFixed(6);
+                syncToFirebaseAndMap(pos.coords.latitude, pos.coords.longitude);
+            }, (err) => {
+                statusMsg.innerText = "Tracking Error: " + err.message;
+                statusMsg.style.color = "red";
+            }, { enableHighAccuracy: true, timeout: 15000 });
+        } else {
+            statusMsg.innerText = "GPS Unsupported";
+            statusMsg.style.color = "red";
+        }
+    }
+
+    function syncToFirebaseAndMap(latitude, longitude) {
+        if (database) {
+            try {
+                database.ref('devices/device_01/tracking').set({
+                    latitude: latitude,
+                    longitude: longitude,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (dbError) {
+                console.error("Cloud tracking database synchronization error:", dbError);
+            }
+        }
+
+        const delta = 0.005;
+        const left = longitude - delta;
+        const bottom = latitude - delta;
+        const right = longitude + delta;
+        const top = latitude + delta;
+
+        // FIXED: Corrected OpenStreetMap URL format to properly include embed paths and standard bounding box query hooks
+        const mapUrl = "https://openstreetmap.org/export/embed.html?bbox=" + 
+                       left + "%2C" + bottom + "%2C" + right + "%2C" + top + 
+                       "&layer=mapnik&marker=" + latitude + "%2C" + longitude;
+        
+        document.getElementById('map-frame').src = mapUrl;
+        document.getElementById('map-placeholder').style.display = 'none';
+        document.getElementById('map-frame').style.display = 'block';
+    }
   </script>
 </body>
 </html>
-
