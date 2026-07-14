@@ -15,11 +15,22 @@ jobs:
 
       - name: Sync Frontend Assets Into Native Folder
         run: |
-          # 1. Generate clean base package profile layout
-          echo '{"name":"safekids","version":"1.0.0","dependencies":{"@capacitor/core":"latest","@capacitor/android":"latest","@capacitor/cli":"latest","@capacitor/geolocation":"latest"}}' > package.json
+          # 1. FIXED: Write package.json safely using a multiline redirect to prevent YAML string boundary crashes
+          cat << 'EOF' > package.json
+{
+  "name": "safekids",
+  "version": "1.0.0",
+  "dependencies": {
+    "@capacitor/core": "latest",
+    "@capacitor/android": "latest",
+    "@capacitor/cli": "latest",
+    "@capacitor/geolocation": "latest"
+  }
+}
+EOF
           npm install
           
-          # 2. Create web asset requirements to prevent Capacitor initialization crashes
+          # 2. FIXED: Write capacitor.config.json safely without inline single quote collisions
           mkdir -p www
           if [ -f index.html ]; then
             cp index.html www/index.html
@@ -27,7 +38,14 @@ jobs:
             echo "<html><body>SafeKids Stub</body></html>" > www/index.html
           fi
           
-          echo '{"appId":"com.safekids1.myapp","appName":"SafeKids","webDir":"www","bundledWebRuntime":false}' > capacitor.config.json
+          cat << 'EOF' > capacitor.config.json
+{
+  "appId": "com.safekids1.myapp",
+  "appName": "SafeKids",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
+EOF
 
           # 3. Force bootstrap the Android native project structure
           npx cap android add || true
@@ -44,7 +62,7 @@ jobs:
           echo '<?xml version="1.0" encoding="utf-8"?><paths><external-path name="external_files" path="." /></paths>' > android/app/src/main/res/xml/file_paths.xml
           echo '<resources><string name="app_name">SafeKids</string><string name="title_activity_main">MainActivity</string></resources>' > android/app/src/main/res/values/strings.xml
 
-          # 6. FIXED: Writes the corrected XML manifest directly to avoid string wrapping errors
+          # 6. Writes the corrected XML manifest directly to avoid string wrapping errors
           rm -f android/app/src/main/AndroidManifest.xml
           cat << 'EOF' > android/app/src/main/AndroidManifest.xml
 <?xml version="1.0" encoding="utf-8"?>
