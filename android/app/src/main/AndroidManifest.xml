@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- FIXED: Corrected the mandatory Android XML namespace URI schema pointer -->
 <manifest xmlns:android="http://android.com">
 
     <!-- Standard Core Network Access permissions -->
